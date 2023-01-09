@@ -17,7 +17,7 @@ EOF
 
 # install client tools
 
-apt install awscli -y
+apt install tmux awscli -y
 
 ssh-keygen -q -t rsa -N '' <<< $'\ny' >/dev/null 2>&1
 
