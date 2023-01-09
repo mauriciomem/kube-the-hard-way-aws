@@ -57,15 +57,6 @@ data "aws_iam_policy_document" "ssm_management" {
   }
 }
 
-data "template_file" "ssm_tunnel_instance_server" {
-  template = file(var.ssm_tunnel_instance_server)
-}
-
-data "template_file" "ssm_tunnel_instance_client" {
-  template = file(var.ssm_tunnel_instance_client)
-}
-
-
 resource "aws_key_pair" "ssh_public_key" {
   key_name   = "admin-public-key"
   public_key = var.ssh_public_key
@@ -127,7 +118,7 @@ module "ec2_k8s_cluster" {
   subnet_id         = each.value.subnet_id
   private_ip        = each.value.private_ip
   key_name          = aws_key_pair.ssh_public_key.id
-  user_data         = base64encode(data.template_file.ssm_tunnel_instance_server.rendered)
+  user_data         = base64encode(templatefile(var.ssm_tunnel_instance_server, {}))
 
   enable_volume_tags = false
 
@@ -160,7 +151,7 @@ module "ec2_client" {
   subnet_id         = element(module.vpc.private_subnets, 0)
   private_ip        = "10.0.1.9"
   key_name          = aws_key_pair.ssh_public_key.id
-  user_data         = base64encode(data.template_file.ssm_tunnel_instance_client.rendered)
+  user_data         = base64encode(templatefile(var.ssm_tunnel_instance_client, {}))
 
   enable_volume_tags = false
 
