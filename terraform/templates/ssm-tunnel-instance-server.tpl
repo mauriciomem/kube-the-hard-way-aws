@@ -17,11 +17,11 @@ net.ipv4.ip_forward=1
 EOF
 
 # Set hostnames
-if [ 10.0.1.10 == $(ip addr show | grep -o 10.0.1.10) ] ; then hostnamectl set-hostname k8s-master-1; fi
-if [ 10.0.1.11 == $(ip addr show | grep -o 10.0.1.11) ] ; then hostnamectl set-hostname k8s-master-2; fi
-if [ 10.0.2.12 == $(ip addr show | grep -o 10.0.2.12) ] ; then hostnamectl set-hostname k8s-worker-1; fi
-if [ 10.0.2.13 == $(ip addr show | grep -o 10.0.2.13) ] ; then hostnamectl set-hostname k8s-worker-2; fi
-if [ 10.0.101.10 == $(ip addr show | grep -o 10.0.101.10) ] ; then hostnamectl set-hostname k8s-ha-lb; fi
+if [ "10.0.1.10" == "$(ip addr show | grep -o 10.0.1.10)" ] ; then hostnamectl set-hostname k8s-master-1; fi
+if [ "10.0.1.11" == "$(ip addr show | grep -o 10.0.1.11)" ] ; then hostnamectl set-hostname k8s-master-2; fi
+if [ "10.0.2.12" == "$(ip addr show | grep -o 10.0.2.12)" ] ; then hostnamectl set-hostname k8s-worker-1; fi
+if [ "10.0.2.13" == "$(ip addr show | grep -o 10.0.2.13)" ] ; then hostnamectl set-hostname k8s-worker-2; fi
+if [ "10.0.101.10" == "$(ip addr show | grep -o 10.0.101.10)" ] ; then hostnamectl set-hostname k8s-ha-lb; fi
 
 # Update /etc/hosts about other hosts
 cat >> /etc/hosts <<EOF
