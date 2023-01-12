@@ -17,19 +17,20 @@ net.ipv4.ip_forward=1
 EOF
 
 # Set hostnames
-if [ "10.0.1.10" == "$(ip addr show | grep -o 10.0.1.10)" ] ; then hostnamectl set-hostname k8s-master-1; fi
-if [ "10.0.1.11" == "$(ip addr show | grep -o 10.0.1.11)" ] ; then hostnamectl set-hostname k8s-master-2; fi
-if [ "10.0.2.12" == "$(ip addr show | grep -o 10.0.2.12)" ] ; then hostnamectl set-hostname k8s-worker-1; fi
-if [ "10.0.2.13" == "$(ip addr show | grep -o 10.0.2.13)" ] ; then hostnamectl set-hostname k8s-worker-2; fi
-if [ "10.0.101.10" == "$(ip addr show | grep -o 10.0.101.10)" ] ; then hostnamectl set-hostname k8s-ha-lb; fi
+if [ "${k8s-master-1-ip}" == "$(ip addr show | grep -o ${k8s-master-1-ip})" ] ; then hostnamectl set-hostname k8s-master-1; fi
+if [ "${k8s-master-2-ip}" == "$(ip addr show | grep -o ${k8s-master-2-ip})" ] ; then hostnamectl set-hostname k8s-master-2; fi
+if [ "${k8s-worker-1-ip}" == "$(ip addr show | grep -o ${k8s-worker-1-ip})" ] ; then hostnamectl set-hostname k8s-worker-1; fi
+if [ "${k8s-master-2-ip}" == "$(ip addr show | grep -o ${k8s-master-2-ip})" ] ; then hostnamectl set-hostname k8s-worker-2; fi
+if [ "${k8s-ha-lb-ip}" == "$(ip addr show | grep -o ${k8s-ha-lb-ip})" ] ; then hostnamectl set-hostname k8s-ha-lb; fi
 
 # Update /etc/hosts about other hosts
 cat >> /etc/hosts <<EOF
-10.0.1.10       k8s-master-1
-10.0.1.11       k8s-master-2
-10.0.2.12       k8s-worker-1
-10.0.2.13       k8s-worker-2
-10.0.101.10   k8s-ha-lb
+${k8s-master-1-ip}  k8s-master-1
+${k8s-master-2-ip}  k8s-master-2
+${k8s-worker-1-ip}  k8s-worker-1
+${k8s-master-2-ip}  k8s-worker-2
+${k8s-ha-lb-ip}     k8s-ha-lb
+${k8s-ha-lb-ip}     kubernetes
 EOF
 
 # install client tools

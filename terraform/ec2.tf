@@ -75,31 +75,42 @@ locals {
       instance_type     = "t3.small"
       availability_zone = element(module.vpc.azs, 0)
       subnet_id         = element(module.vpc.private_subnets, 0)
-      private_ip        = "10.0.1.10"
+      private_ip        = cidrhost(element(module.vpc.private_subnets_cidr_blocks, 0), 10)
     }
     k8s-master-2 = {
       instance_type     = "t3.small"
       availability_zone = element(module.vpc.azs, 0)
       subnet_id         = element(module.vpc.private_subnets, 0)
-      private_ip        = "10.0.1.11"
+      private_ip        = cidrhost(element(module.vpc.private_subnets_cidr_blocks, 0), 11)
     }
     k8s-worker-1 = {
       instance_type     = "t3.micro"
       availability_zone = element(module.vpc.azs, 1)
       subnet_id         = element(module.vpc.private_subnets, 1)
-      private_ip        = "10.0.2.12"
+      private_ip        = cidrhost(element(module.vpc.private_subnets_cidr_blocks, 1), 12)
     }
     k8s-worker-2 = {
       instance_type     = "t3.micro"
       availability_zone = element(module.vpc.azs, 1)
       subnet_id         = element(module.vpc.private_subnets, 1)
-      private_ip        = "10.0.2.13"
+      private_ip        = cidrhost(element(module.vpc.private_subnets_cidr_blocks, 1), 13)
     }
     k8s-ha-lb = {
       instance_type     = "t3.micro"
       availability_zone = element(module.vpc.azs, 0)
       subnet_id         = element(module.vpc.public_subnets, 0)
-      private_ip        = "10.0.101.10"
+      private_ip        = cidrhost(element(module.vpc.public_subnets_cidr_blocks, 0), 10)
+    }
+  }
+}
+
+locals {
+  client_instances = {
+    k8s-client = {
+      instance_type     = "t3.micro"
+      availability_zone = element(module.vpc.azs, 0)
+      subnet_id         = element(module.vpc.private_subnets, 0)
+      private_ip        = cidrhost(element(module.vpc.private_subnets_cidr_blocks, 0), 9)
     }
   }
 }
@@ -118,7 +129,12 @@ module "ec2_k8s_cluster" {
   subnet_id         = each.value.subnet_id
   private_ip        = each.value.private_ip
   key_name          = aws_key_pair.ssh_public_key.id
-  user_data         = base64encode(templatefile(var.ssm_tunnel_instance_server, {}))
+  user_data         = base64encode(templatefile(var.ssm_tunnel_instance_server, {
+                                    k8s-master-1-ip = local.multiple_instances.k8s-master-1.private_ip,
+                                    k8s-master-2-ip = local.multiple_instances.k8s-master-2.private_ip,
+                                    k8s-worker-1-ip = local.multiple_instances.k8s-worker-1.private_ip,
+                                    k8s-worker-2-ip = local.multiple_instances.k8s-worker-2.private_ip,
+                                    k8s-ha-lb-ip = local.multiple_instances.k8s-ha-lb.private_ip}))
 
   enable_volume_tags = false
 
@@ -143,16 +159,24 @@ module "ec2_client" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "4.3.0"
 
-  name = "k8s-client"
+  for_each = local.client_instances
+
+  name = each.key
 
   ami = "ami-0b93ce03dcbcb10f6" # ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20221212
-  instance_type     = "t3.small"
-  availability_zone = element(module.vpc.azs, 0)
-  subnet_id         = element(module.vpc.private_subnets, 0)
-  private_ip        = "10.0.1.9"
+  instance_type     = each.value.instance_type
+  availability_zone = each.value.availability_zone
+  subnet_id         = each.value.subnet_id
+  private_ip        = each.value.private_ip
   key_name          = aws_key_pair.ssh_public_key.id
-  user_data         = base64encode(templatefile(var.ssm_tunnel_instance_client, {}))
-
+  #user_data         = base64encode(templatefile(var.ssm_tunnel_instance_client, {}))
+  user_data         = base64encode(templatefile(var.ssm_tunnel_instance_server, {
+                                    k8s-master-1-ip = local.multiple_instances.k8s-master-1.private_ip,
+                                    k8s-master-2-ip = local.multiple_instances.k8s-master-2.private_ip,
+                                    k8s-worker-1-ip = local.multiple_instances.k8s-worker-1.private_ip,
+                                    k8s-worker-2-ip = local.multiple_instances.k8s-worker-2.private_ip,
+                                    k8s-ha-lb-ip = local.multiple_instances.k8s-ha-lb.private_ip,
+                                    k8s-client-ip = local.client_instances.k8s-client.private_ip }))
   enable_volume_tags = false
 
   create_iam_instance_profile = true
