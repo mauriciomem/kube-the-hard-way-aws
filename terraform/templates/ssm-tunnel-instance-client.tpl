@@ -11,7 +11,7 @@ if [ "${ip}" == "$(ip addr show | grep -o ${ip})" ] ; then hostnamectl set-hostn
 # Update /etc/hosts about other hosts
 cat >> /etc/hosts <<EOF
 %{ for host, ip in zipmap(cluster_hosts, cluster_ips) ~}
-${host}     ${ip}
+${ip}     ${host}
 %{ endfor ~}
 EOF
 
