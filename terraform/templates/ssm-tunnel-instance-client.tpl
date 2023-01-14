@@ -20,7 +20,7 @@ ssh-keygen -q -t rsa -N '' <<< $'\ny' >/dev/null 2>&1
 cp -p ~/.ssh/id_rsa* /home/ubuntu/.ssh/
 chown ubuntu.ubuntu /home/ubuntu/.ssh/id_rsa*
 export PUBLIC_KEY=$(cat /home/ubuntu/.ssh/id_rsa.pub)
-aws ssm send-command --region us-east-1 --targets "Key=tag:ec2-type,Values=server" --document-name "AWS-RunShellScript" --parameters commands=["echo $PUBLIC_KEY >> /home/ubuntu/.ssh/authorized_keys"]
+aws ssm send-command --region ${aws_region} --targets "Key=tag:ec2-type,Values=server" --document-name "AWS-RunShellScript" --parameters commands=["echo $PUBLIC_KEY >> /home/ubuntu/.ssh/authorized_keys"]
 
 # install and setup client tools
 wget https://storage.googleapis.com/kubernetes-release/release/v1.24.3/bin/linux/amd64/kubectl

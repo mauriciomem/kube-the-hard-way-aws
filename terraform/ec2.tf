@@ -174,7 +174,7 @@ module "ec2_client" {
   key_name          = aws_key_pair.ssh_public_key.id
   user_data = base64encode(templatefile(var.ssm_tunnel_instance_client, {
     client_hosts = local.client_hosts, client_ips = local.client_ips,
-  cluster_hosts = local.cluster_hosts, cluster_ips = local.cluster_ips }))
+  cluster_hosts = local.cluster_hosts, cluster_ips = local.cluster_ips, aws_region = var.aws_region }))
   enable_volume_tags = false
 
   create_iam_instance_profile = true
