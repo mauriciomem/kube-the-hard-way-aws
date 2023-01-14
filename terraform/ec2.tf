@@ -70,7 +70,7 @@ resource "aws_iam_policy" "k8s_ssm_policy" {
 }
 
 locals {
-  multiple_instances = {
+  server_instances = {
     k8s-master-1 = {
       instance_type     = "t3.small"
       availability_zone = element(module.vpc.azs, 0)
@@ -115,26 +115,29 @@ locals {
   }
 }
 
+locals {
+  cluster_hosts = keys(local.server_instances)
+  cluster_ips   = [for k in keys(local.server_instances) : local.server_instances[k].private_ip]
+  client_hosts  = keys(local.client_instances)
+  client_ips    = [for k in keys(local.client_instances) : local.client_instances[k].private_ip]
+}
+
 module "ec2_k8s_cluster" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "4.3.0"
 
-  for_each = local.multiple_instances
+  for_each = local.server_instances
 
   name = each.key
 
-  ami = "ami-0b93ce03dcbcb10f6" # ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20221212
+  ami               = "ami-0b93ce03dcbcb10f6" # ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20221212
   instance_type     = each.value.instance_type
   availability_zone = each.value.availability_zone
   subnet_id         = each.value.subnet_id
   private_ip        = each.value.private_ip
   key_name          = aws_key_pair.ssh_public_key.id
-  user_data         = base64encode(templatefile(var.ssm_tunnel_instance_server, {
-                                    k8s-master-1-ip = local.multiple_instances.k8s-master-1.private_ip,
-                                    k8s-master-2-ip = local.multiple_instances.k8s-master-2.private_ip,
-                                    k8s-worker-1-ip = local.multiple_instances.k8s-worker-1.private_ip,
-                                    k8s-worker-2-ip = local.multiple_instances.k8s-worker-2.private_ip,
-                                    k8s-ha-lb-ip = local.multiple_instances.k8s-ha-lb.private_ip}))
+  user_data = base64encode(templatefile(var.ssm_tunnel_instance_server,
+  { cluster_hosts = local.cluster_hosts, cluster_ips = local.cluster_ips }))
 
   enable_volume_tags = false
 
@@ -163,20 +166,15 @@ module "ec2_client" {
 
   name = each.key
 
-  ami = "ami-0b93ce03dcbcb10f6" # ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20221212
+  ami               = "ami-0b93ce03dcbcb10f6" # ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20221212
   instance_type     = each.value.instance_type
   availability_zone = each.value.availability_zone
   subnet_id         = each.value.subnet_id
   private_ip        = each.value.private_ip
   key_name          = aws_key_pair.ssh_public_key.id
-  #user_data         = base64encode(templatefile(var.ssm_tunnel_instance_client, {}))
-  user_data         = base64encode(templatefile(var.ssm_tunnel_instance_server, {
-                                    k8s-master-1-ip = local.multiple_instances.k8s-master-1.private_ip,
-                                    k8s-master-2-ip = local.multiple_instances.k8s-master-2.private_ip,
-                                    k8s-worker-1-ip = local.multiple_instances.k8s-worker-1.private_ip,
-                                    k8s-worker-2-ip = local.multiple_instances.k8s-worker-2.private_ip,
-                                    k8s-ha-lb-ip = local.multiple_instances.k8s-ha-lb.private_ip,
-                                    k8s-client-ip = local.client_instances.k8s-client.private_ip }))
+  user_data = base64encode(templatefile(var.ssm_tunnel_instance_client, {
+    client_hosts = local.client_hosts, client_ips = local.client_ips,
+  cluster_hosts = local.cluster_hosts, cluster_ips = local.cluster_ips }))
   enable_volume_tags = false
 
   create_iam_instance_profile = true
@@ -192,7 +190,7 @@ module "ec2_client" {
   }
 
   tags = {
-     ec2-type = "client"
+    ec2-type = "client"
   }
 
   depends_on = [
