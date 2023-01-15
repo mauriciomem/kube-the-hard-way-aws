@@ -2,19 +2,61 @@
 
 In this lab you will provision a [PKI Infrastructure](https://en.wikipedia.org/wiki/Public_key_infrastructure) using the popular openssl tool, then use it to bootstrap a Certificate Authority, and generate TLS certificates for the following components: etcd, kube-apiserver, kube-controller-manager, kube-scheduler, kubelet, and kube-proxy.
 
+## Cluster PKI layout summary
+
+**Client certificates**
+ - `kube-controller-manager`: Communicates with the `kube-apiserver`. Because of this needs to validate its identity as a client to the `kube-apiserver` service via a TLS certificate.
+ - `kube-scheduler`: Communicates with the `kube-apiserver` to schedule pods in the cluster nodes.
+ - `kube-proxy`: Communicates with the `kube-apiserver` to manage Kubernetes Services.
+ - `administrator`: Authenticates against the `kube-apiserver` via kubectl and/or a rest API client by using certificates.
+ - `kubelet`: Access the `kube-apiserver` to retrieve information.
+ - `kube-apiserver`: Access to the `kubelet` is required for retrieving metrics, logs, and executing commands in pods from the `kube-apiserver`.
+
+**Server certificates**
+ - kube-apiserver: Presents authentication information to `kube-controller-manager`, `kube-scheduler`, `kubelet`, `kube-proxy`, `administrator` and any other user or `ServiceAccount`.
+ - `etcd-server`: Only cluster service that doesn't have client certificate. Only client: `kube-apiserver`.
+ - `kubelet`: Access to the `kubelet` is required for retrieving metrics, logs, and executing commands in pods from the `kube-apiserver`.
+
+ ## General process
+
+### CA self signed Certificate
+
+It is self signed because the same private key of the key pair is used to generate the CA certificate.
+
+1. Create a private key of a service.
+```
+openssl genrsa -o ca.key 2048
+```
+2. Create a [Certificate Signing Request (CSR)](https://en.wikipedia.org/wiki/Certificate_signing_request) by signing it with the private key. The CSR can include attributes that will be embeded into the Certiticate to identify the applicant (such as a Common Name, Organization Name, Organizational Unit, etc.). In Kubernetes its a requirement to add certain attributes to authenticate a service component.
+```
+openssl req -new -key ca.key -subj “/CN=KUBERNETES-CA”
+```
+3. Sign the certificate with the key and the CSR
+```
+openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt
+```
+
+### Remaining cluster services Certificates
+
+The Certificate generation process is the same, with sligth differences
+
+1. Create the private key of the service
+2. Create the CSR with the required attributes for the service.
+3. Generate the service Certificate by specifying the CA certificate and CA key to confirm the authenticity of the Certificate.
+
+The CA Certificate will be used to sign all certificates.
+
 # Where to do these?
 
 You can do these on any machine with `openssl` on it. But you should be able to copy the generated files to the provisioned VMs. Or just do these from one of the master nodes.
 
-In our case we do the following steps on the `master-1` node, as we have set it up to be the administrative client.
-
-[//]: # (host:master-1)
+In our case we do the following steps on the `k8s-master-1` node, as we have set it up to be the administrative client.
 
 ## Certificate Authority
 
 In this section you will provision a Certificate Authority that can be used to generate additional TLS certificates.
 
-Query IPs of hosts we will insert as certificate subject alternative names (SANs), which will be read from `/etc/hosts`. Note that doing this allows us to change the VM network range more easily from the default for these labs which is `192.168.56.0/24`
+Query IPs of hosts we will insert as certificate subject alternative names (SANs), which will be read from `/etc/hosts`. Note that doing this allows us to change the VM network range more easily from the default for these labs which are `10.0.1.0/24`, `10.0.2.0/24`, `10.0.3.0/24`, and `10.0.101.0/24`
 
 Set up environment variables. Run the following:
 
@@ -44,9 +86,9 @@ echo $API_SERVICE
 The output should look like this. If you changed any of the defaults mentioned in the [prerequisites](./01-prerequisites.md) page, then addresses may differ.
 
 ```
-192.168.56.11
-192.168.56.12
-192.168.56.30
+10.0.1.10
+10.0.1.11
+10.0.101.10
 10.96.0.0/24
 10.96.0.1
 ```
@@ -78,9 +120,9 @@ ca.key
 
 Reference : https://kubernetes.io/docs/tasks/administer-cluster/certificates/#openssl
 
-The ca.crt is the Kubernetes Certificate Authority certificate and ca.key is the Kubernetes Certificate Authority private key.
-You will use the ca.crt file in many places, so it will be copied to many places.
-The ca.key is used by the CA for signing certificates. And it should be securely stored. In this case our master node(s) is our CA server as well, so we will store it on master node(s). There is no need to copy this file elsewhere.
+The `ca.crt` is the Kubernetes Certificate Authority certificate and `ca.key` is the Kubernetes Certificate Authority private key.
+You will use the `ca.crt` file in many places, so it will be copied to many places.
+The `ca.key` is used by the CA for signing certificates. And it should be securely stored. In this case our master node(s) is our CA server as well, so we will store it on master node(s). There is no need to copy this file elsewhere.
 
 ## Client and Server Certificates
 
@@ -103,7 +145,11 @@ Generate the `admin` client certificate and private key:
 }
 ```
 
-Note that the admin user is part of the **system:masters** group. This is how we are able to perform any administrative operations on Kubernetes cluster using kubectl utility.
+Note that the admin user is part of the **system:masters** group ("O=system:masters") that is mapped into a ClusterRole and ClusterRoleBinding objects. This is how we are able to perform any administrative operations on Kubernetes cluster using kubectl utility.
+
+References: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#default-roles-and-role-bindings
+
+The CN ("CN=admin") attribute it the username that kubernetes uses to authenticate the user when the administrator uses the kubectl tool.
 
 Results:
 
@@ -112,7 +158,7 @@ admin.key
 admin.crt
 ```
 
-The admin.crt and admin.key file gives you administrative access. We will configure these to be used with the kubectl tool to perform administrative functions on kubernetes.
+The `admin.crt` and `admin.key` file gives you administrative access. We will configure these to be used with the kubectl tool to perform administrative functions on kubernetes.
 
 ### The Kubelet Client Certificates
 
@@ -120,6 +166,7 @@ We are going to skip certificate configuration for Worker Nodes for now. We will
 For now let's just focus on the control plane components.
 
 ### The Controller Manager Client Certificate
+
 
 Generate the `kube-controller-manager` client certificate and private key:
 
@@ -134,6 +181,8 @@ Generate the `kube-controller-manager` client certificate and private key:
     -CA ca.crt -CAkey ca.key -CAcreateserial -out kube-controller-manager.crt -days 1000
 }
 ```
+
+The **system:kube-controller-manager** group ("O=system:controller-manager") that is mapped into a ClusterRole and ClusterRoleBinding objects allows access to the resources required by the controller manager component.
 
 Results:
 
