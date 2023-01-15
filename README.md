@@ -38,8 +38,8 @@ We will be building the following:
 
 * Two control plane nodes (`k8s-master-1` and `k8s-master-2`) running the control plane components as operating system services.
 * Two worker nodes (`k8s-worker-1` and `k8s-worker-2`)
-* One loadbalancer VM running HAProxy to balance requests between the two API servers.
-* One client VM to manage all the nodes.
+* One loadbalancer EC2 instance running HAProxy to balance requests between the two API servers.
+* One client EC2 instance to manage all the nodes.
 
 ## Labs
 

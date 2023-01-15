@@ -1,7 +1,5 @@
-#!/bin/bash -x 
+#!/bin/bash
 set -ex
-
-apt update && apt install awscli -y
 
 # Disable cgroups v2 (kernel command line parameter)
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="systemd.unified_cgroup_hierarchy=0 ipv6.disable=1 /' /etc/default/grub

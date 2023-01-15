@@ -1,4 +1,4 @@
-#!/bin/bash -x 
+#!/bin/bash
 set -ex
 
 apt update && apt install tmux awscli -y
