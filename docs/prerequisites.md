@@ -1,13 +1,48 @@
 # Prerequisites
 
-## AWS
+## AWS 
 
- An AWS account or AWS user
-  SSH key pair
-  SSH Configuration
-  Instance types
+General requisites
+
+ - An AWS account available to deploy AWS resources.
+ - An SSH key pair.
+ - An SSH Configuration to be able to login through SSM session manager.
+ - awscli installed.
+ - A small budget to deploy 6 EC2 instances with a NAT Gateway. 
 
 ## Terraform
+
+The `terraform` folder includes all required resources to provision all the underlying infrastructure. To deploy all the AWS resources, you should:
+
+1. Copy the file variables.default.tfvars to variables.tfvars and set the variable values accordingly.
+2. Review if everything is in place and check the resources to be deployed with: `terraform plan --var-file variables.tfvars`.
+3. Apply changes to deploy the infra with: `terraform apply --var-file variables.tfvars`
+
+## SSH configuration
+
+This lab leverages SSM session manager to access the EC2 instances, replacing the deployment of a bastion  in a public subnet. This setup is managed by terraform. Nevertheless, from the client side, you should add to the ssh configuration file the following references,
+
+```
+# K8S client over Session Manager
+host k8s-client
+    HostName [EC2 instances ID]
+    User ubuntu
+    PreferredAuthentications publickey
+    IdentitiesOnly yes
+    IdentityFile ~/.ssh/[SSH Private key]
+    ProxyCommand sh -c "~/.ssh/ssm-private-ec2-proxy.sh %h %p"
+
+# SSH over Session Manager
+host i-* mi-*
+    User ubuntu
+    PreferredAuthentications publickey
+    IdentitiesOnly yes
+    IdentityFile ~/.ssh/[SSH Private key]
+    ProxyCommand sh -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
+```
+
+The first SSH config clause will allow you access the client EC2 instance that it will be used in all steps during the cluster setup.
+In certain situations or for troubleshooting purposes, the second SSH config clause permits access to every EC2 instance via a `aws ssm start-session` command
 
 ## Lab Defaults
 
@@ -17,11 +52,14 @@ One NAT gateway
 
 ### EC2 Instances Network
 
-The network used by the Virtual Box virtual machines is `192.168.56.0/24`.
+The network deployed in AWS consists in:
 
-To change this, edit the [Vagrantfile](../vagrant/Vagrantfile) in your cloned copy (do not edit directly in github), and set the new value for the network prefix at line 9. This should not overlap any of the other network settings.
+ - Three private subnets.
+ - Three public subnets.
+ - An only NAT Gateway.
+ - An Internet Gateway.
 
-Note that you do not need to edit any of the other scripts to make the above change. It is all managed by shell variable computations based on the assigned VM  IP  addresses and the values in the hosts file (also computed).
+All instances except the load balancer will be placed in private subnets. The load balancer will have attached a public IP.
 
 It is *recommended* that you leave the pod and service networks with the following defaults. If you change them then you will also need to edit one or both of the CoreDNS and Weave networking manifests to accommodate your change.
 
@@ -54,52 +92,3 @@ Additionally edit line 164 of [coredns.yaml](../deployments/coredns.yaml) to set
 > Enable synchronize-panes by pressing `CTRL+B` followed by `"` to split the window into two panes. In each pane (selectable with mouse), ssh to the host(s) you will be working with.</br>Next type `CTRL+X` at the prompt to begin sync. In sync mode, the dividing line between panes will be red. Everything you type or paste in one pane will be echoed in the other.<br>To disable synchronization type `CTRL+X` again.</br></br>Note that the `CTRL-X` key binding is provided by a `.tmux.conf` loaded onto the VM by the vagrant provisioner.
 
 Next: [Compute Resources](02-compute-resources.md)
-
-
-
-## SSH configuration
-
-.ssh/config
-
-```
-# K8S client over Session Manager
-host k8s-client
-    HostName i-ffffffffffff
-    User ubuntu
-    PreferredAuthentications publickey
-    IdentitiesOnly yes
-    IdentityFile ~/.ssh/id_rsa_cloud
-    ProxyCommand sh -c "~/.ssh/ssm-private-ec2-proxy.sh %h %p"
-
-# SSH over Session Manager
-host i-* mi-*
-    User ubuntu
-    PreferredAuthentications publickey
-    IdentitiesOnly yes
-    IdentityFile ~/.ssh/id_rsa_cloud
-    ProxyCommand sh -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
-```
-
-ssh/ssm-private-ec2-proxy.sh
-
-```bash
-#!/bin/bash
-
-AWS_PROFILE=GreatProfile
-AWS_REGION=us-east-1
-MAX_ITERATION=5
-SLEEP_DURATION=5
-
-# Arguments passed from SSH client
-HOST=$1
-PORT=$2
-
-echo $HOST
-
-# Start ssm session
-aws ssm start-session --target $HOST \
-  --document-name AWS-StartSSHSession \
-  --parameters portNumber=${PORT} \
-  --profile ${AWS_PROFILE} \
-  --region ${AWS_REGION}
-```
