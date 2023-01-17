@@ -32,12 +32,19 @@ Kubernetes The Hard Way guides you through bootstrapping a highly available Kube
 * [etcd](https://github.com/coreos/etcd) v3.5.3
 * [CoreDNS](https://github.com/coredns/coredns) v1.9.4
 
+## Cluster Deployment
+
+The underlying infraestructure consists on EC2 instances deployed spread accross three availability zones with it a custom network layout. See [diagram]()
+
+ * [Terraform](https://developer.hashicorp.com/terraform/downloads) 1.3.6
+ * [Terraform AWS provider](https://registry.terraform.io/providers/hashicorp/aws/4.40.0/docs) 4.40.0
+
 ### Node configuration
 
 We will be building the following:
 
 * Two control plane nodes (`k8s-master-1` and `k8s-master-2`) running the control plane components as operating system services.
-* Two worker nodes (`k8s-worker-1` and `k8s-worker-2`)
+* Two worker nodes (`k8s-worker-1` and `k8s-worker-2`).
 * One loadbalancer EC2 instance running HAProxy to balance requests between the two API servers.
 * One client EC2 instance to manage all the nodes.
 
