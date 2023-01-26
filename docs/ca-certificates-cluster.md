@@ -167,7 +167,6 @@ For now let's just focus on the control plane components.
 
 ### The Controller Manager Client Certificate
 
-
 Generate the `kube-controller-manager` client certificate and private key:
 
 ```bash
@@ -183,6 +182,12 @@ Generate the `kube-controller-manager` client certificate and private key:
 ```
 
 The **system:kube-controller-manager** group ("O=system:controller-manager") that is mapped into a ClusterRole and ClusterRoleBinding objects allows access to the resources required by the controller manager component.
+
+References: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#core-component-roles.
+
+The Controller Manager runs various controllers build into the Kubernetes Control Plane by using separated service accounts.
+
+Reference: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#controller-roles
 
 Results:
 
@@ -208,6 +213,9 @@ Generate the `kube-proxy` client certificate and private key:
     -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-proxy.crt -days 1000
 }
 ```
+There is a core ClusterRole object named **system:node-proxier** and a ClusterRoleBinding with the name **system:kube-proxy** that will allow access to all resources required by the kube-proxy service component.
+
+References: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#core-component-roles
 
 Results:
 
@@ -220,8 +228,6 @@ kube-proxy.crt
 
 Generate the `kube-scheduler` client certificate and private key:
 
-
-
 ```bash
 {
   openssl genrsa -out kube-scheduler.key 2048
@@ -232,6 +238,9 @@ Generate the `kube-scheduler` client certificate and private key:
   openssl x509 -req -in kube-scheduler.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-scheduler.crt -days 1000
 }
 ```
+Same as the previous control plane components, the `kube-scheduler` Certificate will include attributes to authenticate the particular service and authorize its access scope.
+
+References: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#core-component-roles
 
 Results:
 
@@ -242,7 +251,7 @@ kube-scheduler.crt
 
 ### The Kubernetes API Server Certificate
 
-The kube-apiserver certificate requires all names that various components may reach it to be part of the alternate names. These include the different DNS names, and IP addresses such as the master servers IP address, the load balancers IP address, the kube-api service IP address etc.
+The kube-apiserver certificate requires all names that various components may reach it to be part of the alternate names. These include the different DNS names, and IP addresses such as the master servers IP address, the load balancers IP address, the kube-api service IP address (`kubectl get svc`) etc.
 
 The `openssl` command cannot take alternate names as command line parameter. So we must create a `conf` file for it:
 
@@ -270,6 +279,7 @@ IP.4 = ${LOADBALANCER}
 IP.5 = 127.0.0.1
 EOF
 ```
+To review an aleady created certificate used in a running cluster, execute: `openssl x509 -noout -text -in /etc/kubernetes/pki/[certificate].crt`
 
 Generate certs for kube-apiserver
 
@@ -422,7 +432,7 @@ Copy the appropriate certificates and private keys to each instance:
 
 ```bash
 {
-for instance in master-1 master-2; do
+for instance in k8s-master-1 k8s-master-2; do
   scp ca.crt ca.key kube-apiserver.key kube-apiserver.crt \
     apiserver-kubelet-client.crt apiserver-kubelet-client.key \
     service-account.key service-account.crt \
@@ -432,7 +442,7 @@ for instance in master-1 master-2; do
     ${instance}:~/
 done
 
-for instance in worker-1 worker-2 ; do
+for instance in k8s-worker-1 k8s-worker-2 ; do
   scp ca.crt kube-proxy.crt kube-proxy.key ${instance}:~/
 done
 }
@@ -440,11 +450,11 @@ done
 
 ## Optional - Check Certificates
 
-At `master-1` and `master-2` nodes, run the following, selecting option 1
+At `k8s-master-1` and `k8s-master-2` nodes, run the following, selecting option 1
 
 ```bash
 ./cert_verify.sh
 ```
 
 Prev: [Client tools](03-client-tools.md)<br>
-Next: [Generating Kubernetes Configuration Files for Authentication](05-kubernetes-configuration-files.md)
+Next: [Generating Kubernetes Configuration Files for Authentication](05-kubernetes-configuration-files.md
