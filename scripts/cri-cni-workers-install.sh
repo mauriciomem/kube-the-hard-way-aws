@@ -24,6 +24,7 @@ sudo tar -xzvf cni-plugins-linux-amd64-v${CNI_VERSION}.tgz -C /opt/cni/bin
 
 
 # create containerd systemd service running configuration
+# https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
 cat <<EOF | sudo tee /etc/systemd/system/containerd.service
 [Unit]
 Description=containerd container runtime
