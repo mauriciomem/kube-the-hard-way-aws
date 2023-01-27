@@ -137,7 +137,7 @@ module "ec2_k8s_cluster" {
   private_ip        = each.value.private_ip
   key_name          = aws_key_pair.ssh_public_key.id
   user_data = base64encode(templatefile(var.ssm_tunnel_instance_server,
-  { cluster_hosts = local.cluster_hosts, cluster_ips = local.cluster_ips }))
+  { cluster_hosts = local.cluster_hosts, cluster_ips = local.cluster_ips, aws_region = var.aws_region }))
 
   enable_volume_tags = false
 

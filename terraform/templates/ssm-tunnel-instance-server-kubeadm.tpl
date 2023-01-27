@@ -3,7 +3,11 @@ set -ex
 
 # Setup package manager
 apt-get update
-apt-get install -y apt-transport-https ca-certificates curl
+apt-get install -y apt-transport-https ca-certificates curl less unzip
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli
 
 # Disable cgroups v2 (kernel command line parameter)
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="systemd.unified_cgroup_hierarchy=0 ipv6.disable=1 /' /etc/default/grub
@@ -54,21 +58,22 @@ fi
 # container runtime config
 
 # versions supported for kubernetes v1.24+
-CONTAINERD_VERSION=1.6.4
+CONTAINERD_VERSION=1.6.5
 CNI_VERSION=1.0.0
 RUNC_VERSION=1.1.1
 
 # download containerd, cni plugins, runc
 wget -q --show-progress --https-only --timestamping \
-  https://github.com/containerd/containerd/releases/download/v1.6.4/containerd-1.6.4-linux-amd64.tar.gz \
+  https://github.com/containerd/containerd/releases/download/v1.6.5/containerd-1.6.5-linux-amd64.tar.gz \
   https://github.com/containernetworking/plugins/releases/download/v1.0.0/cni-plugins-linux-amd64-v1.0.0.tgz \
   https://github.com/opencontainers/runc/releases/download/v1.1.1/runc.amd64
 
 # place downloaded binaries in its corresponding folders
 mkdir -p /opt/cni/bin
+mkdir -p /etc/cni/net.d
 chmod +x runc.amd64
 mv runc.amd64 /usr/local/bin/runc
-tar -xzvf containerd-1.6.4-linux-amd64.tar.gz -C /usr/local
+tar -xzvf containerd-1.6.5-linux-amd64.tar.gz -C /usr/local
 tar -xzvf cni-plugins-linux-amd64-v1.0.0.tgz -C /opt/cni/bin
 
 # create containerd systemd service running configuration
@@ -115,6 +120,13 @@ echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://a
 apt-get update
 apt-get install -y kubelet=1.25.0-00 kubeadm=1.25.0-00 kubectl=1.25.0-00
 apt-mark hold kubelet kubeadm kubectl
+
+# setup ssh keys
+ssh-keygen -q -t rsa -N '' <<< $'\ny' >/dev/null 2>&1
+cp -p ~/.ssh/id_rsa* /home/ubuntu/.ssh/
+chown ubuntu.ubuntu /home/ubuntu/.ssh/id_rsa*
+export PUBLIC_KEY=$(cat /home/ubuntu/.ssh/id_rsa.pub)
+aws ssm send-command --region ${aws_region} --targets "Key=tag:ec2-type,Values=server" --document-name "AWS-RunShellScript" --parameters commands=["echo $PUBLIC_KEY >> /home/ubuntu/.ssh/authorized_keys"]
 
 # reboot instance
 reboot
