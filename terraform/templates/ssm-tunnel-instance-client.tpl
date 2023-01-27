@@ -1,7 +1,11 @@
 #!/bin/bash
 set -ex
 
-apt update && apt install tmux awscli -y
+apt-get update && apt-get install tmux less curl unzip -y
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli
 
 # Set hostnames
 %{ for host, ip in zipmap(client_hosts, client_ips) ~}
