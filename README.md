@@ -49,7 +49,7 @@ We will be building the following:
 
 ### Extras
 
-In some steps documents, this particular KTHW alternative approach includes additional information to give extra context about why we are performing each task, helping to understand and learn the whole process.
+In some steps documents, this particular KTHW alternative approach includes additional information to give context about why we perform each task, helping us understand and learn throughout the whole process.
 
 Also, because we are working in a cloud environment, with costs charged by the hour, inside the [scripts](scripts/) folder, you will find basic bash scripts that perform all the tasks required on each step. This alternative could help you reach faster where you left off.
 Finally, if you don't want to focus on the KTHW approach, you have the alternative to enable the [kubeadm way](docs/kubeadm-cluster.md). 

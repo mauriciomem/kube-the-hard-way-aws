@@ -8,7 +8,7 @@ This can be considered a helpful alternative to test creating and/or upgrading k
 
 Because of the different Kubernetes node roles, you can set up a multi-master cluster. As a reference, you can review the steps left below.
 
-### Initialize a master node
+1. **Initialize a master node**
 
 `kubeadm init [arguments]`
 
@@ -22,22 +22,22 @@ Common options:
 
 - `--upload-certs`: to distribute the certificates accross all control plane node without manual distribution. Let kubeadm manage the certifcate creation and distribution processes.
 
-1. kubeadm init without automatic certificate distribution
+2. **kubeadm init without automatic certificate distribution**
 
 ```
 sudo kubeadm init --control-plane-endpoint=k8s-ha-lb --pod-network-cidr 10.244.0.0/16 --apiserver-advertise-address=10.0.1.10
 ```
 
-2. Join node to the cluster with a master role. Remember to save the one time tokens generated in the previous step.
+3. **Join node to the cluster with a master role. Remember to save the one time tokens generated in the previous step.**
 
 ```
 kubeadm join k8s-ha-lb:6443 --token [token] --discovery-token-ca-cert-hash [hash] --control-plane --apiserver-advertise-address=10.0.1.11
 ```
 
-3. Join node to the cluster with a worker role
+4. **Join node to the cluster with a worker role**
 
 ```
 kubeadm join k8s-ha-lb:6443 --token [token] --discovery-token-ca-cert-hash [hash]
 ```
 
-4. Remember that the kubeconfig file for the admin user is placed inside the `/etc/kubernetes/` folder.
+5. **Remember that the kubeconfig file for the admin user is placed inside the `/etc/kubernetes/` folder.**
