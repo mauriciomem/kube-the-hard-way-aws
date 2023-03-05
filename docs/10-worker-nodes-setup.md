@@ -8,7 +8,7 @@ We will now install the kubernetes components
 
 ## Prerequisites
 
-The Certificates and Configuration are created on `master-1` node and then copied over to workers using `scp`.
+The Certificates and Configuration are created on `k8s-master-1` node and then copied over to workers using `scp`.
 Once this is done, the commands are to be run on first worker instance: `worker-1`. Login to first worker instance using SSH Terminal.
 
 ### Provisioning Kubelet Client Certificates
@@ -17,9 +17,9 @@ Kubernetes uses a [special-purpose authorization mode](https://kubernetes.io/doc
 
 Generate a certificate and private key for one worker node:
 
-On `master-1`:
+On `k8s-master-1`:
 
-[//]: # (host:master-1)
+[//]: # (host:k8s-master-1)
 
 ```bash
 WORKER_1=$(dig +short worker-1)
@@ -64,7 +64,7 @@ LOADBALANCER=$(dig +short loadbalancer)
 
 Generate a kubeconfig file for the first worker node.
 
-On `master-1`:
+On `k8s-master-1`:
 ```bash
 {
   kubectl config set-cluster kubernetes-the-hard-way \
@@ -93,7 +93,7 @@ worker-1.kubeconfig
 ```
 
 ### Copy certificates, private keys and kubeconfig files to the worker node:
-On `master-1`:
+On `k8s-master-1`:
 
 ```bash
 scp ca.crt worker-1.crt worker-1.key worker-1.kubeconfig worker-1:~/
@@ -280,9 +280,9 @@ On worker-1:
 
 ## Verification
 
-[//]: # (host:master-1)
+[//]: # (host:k8s-master-1)
 
-Now return to the `master-1` node.
+Now return to the `k8s-master-1` node.
 
 List the registered Kubernetes nodes from the master node:
 
@@ -300,4 +300,4 @@ worker-1   NotReady   <none>   93s   v1.24.3
 The node is not ready as we have not yet installed pod networking. This comes later.
 
 Prev: [Installing CRI on the Kubernetes Worker Nodes](09-install-cri-workers.md)<br>
-Next: [TLS Bootstrapping Kubernetes Workers](11-tls-bootstrapping-kubernetes-workers.md)
+Next: [TLS Bootstrapping Kubernetes Workers](11-tls-bootstrapping.md)

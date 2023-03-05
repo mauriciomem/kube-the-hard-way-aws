@@ -116,10 +116,11 @@ locals {
 }
 
 locals {
-  cluster_hosts = keys(local.server_instances)
-  cluster_ips   = [for k in keys(local.server_instances) : local.server_instances[k].private_ip]
-  client_hosts  = keys(local.client_instances)
-  client_ips    = [for k in keys(local.client_instances) : local.client_instances[k].private_ip]
+  ssm_tunnel_instance_server = var.kubeadm_on ? var.ssm_tunnel_instance_server : var.ssm_tunnel_instance_server_kubeadm
+  cluster_hosts              = keys(local.server_instances)
+  cluster_ips                = [for k in keys(local.server_instances) : local.server_instances[k].private_ip]
+  client_hosts               = keys(local.client_instances)
+  client_ips                 = [for k in keys(local.client_instances) : local.client_instances[k].private_ip]
 }
 
 module "ec2_k8s_cluster" {
@@ -136,7 +137,7 @@ module "ec2_k8s_cluster" {
   subnet_id         = each.value.subnet_id
   private_ip        = each.value.private_ip
   key_name          = aws_key_pair.ssh_public_key.id
-  user_data = base64encode(templatefile(var.ssm_tunnel_instance_server,
+  user_data = base64encode(templatefile(local.ssm_tunnel_instance_server,
   { cluster_hosts = local.cluster_hosts, cluster_ips = local.cluster_ips, aws_region = var.aws_region }))
 
   enable_volume_tags = false

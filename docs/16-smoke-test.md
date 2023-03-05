@@ -4,7 +4,7 @@ In this lab you will complete a series of tasks to ensure your Kubernetes cluste
 
 ## Data Encryption
 
-[//]: # (host:master-1)
+[//]: # (host:k8s-master-1)
 
 In this section you will verify the ability to [encrypt secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#verifying-that-data-is-encrypted).
 

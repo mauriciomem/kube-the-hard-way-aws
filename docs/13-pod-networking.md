@@ -7,11 +7,11 @@ We chose to use CNI - [weave](https://www.weave.works/docs/net/latest/kubernetes
 
 ### Deploy Weave Network
 
-Deploy weave network. Run only once on the `master-1` node. You will see a warning, but this is OK.
+Deploy weave network. Run only once on the `k8s-master-1` node. You will see a warning, but this is OK.
 
-[//]: # (host:master-1)
+[//]: # (host:k8s-master-1)
 
-On `master-1`
+On `k8s-master-1`
 
 ```bash
 kubectl apply -f "https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s-1.11.yaml"
@@ -53,5 +53,5 @@ worker-2   Ready    <none>   2m49s   v1.24.3
 
 Reference: https://kubernetes.io/docs/tasks/administer-cluster/network-policy-provider/weave-network-policy/#install-the-weave-net-addon
 
-Prev: [Configuring Kubectl](12-configuring-kubectl.md)</br>
-Next: [Kube API Server to Kubelet Connectivity](14-kube-apiserver-to-kubelet.md)
+Prev: [Configuring Kubectl](12-client-final-kubeconfig.md)</br>
+Next: [Kube API Server to Kubelet Connectivity](14-rbac-apiserver-to-kubelet.md)
