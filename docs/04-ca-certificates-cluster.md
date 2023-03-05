@@ -457,4 +457,4 @@ At `k8s-master-1` and `k8s-master-2` nodes, run the following, selecting option 
 ```
 
 Prev: [Client tools](03-client-tools.md)<br>
-Next: [Generating Kubernetes Configuration Files for Authentication](05-kubernetes-configuration-files.md
+Next: [Generating Kubernetes Configuration Files for Authentication](05-kubeconfig-files.md)

@@ -204,35 +204,24 @@ done
 Copy the appropriate `admin.kubeconfig`, `kube-controller-manager` and `kube-scheduler` kubeconfig files to each controller instance:
 
 ```bash
-for instance in master-1 master-2; do
+for instance in k8s-master-1 k8s-master-2; do
   scp admin.kubeconfig kube-controller-manager.kubeconfig kube-scheduler.kubeconfig ${instance}:~/
 done
 ```
 
 ## Optional - Check kubeconfigs
 
-At `master-1` and `master-2` nodes, run the following, selecting option 2
+At `k8s-master-1` and `k8s-master-2` nodes, run the following, selecting option 2
 
 ```bash
 ./cert_verify.sh
 ```
 
-
-Prev: [Certificate Authority](04-certificate-authority.md)<br>
-Next: [Generating the Data Encryption Config and Key](06-data-encryption-keys.md)
-
-
-
-
-
-
-
-
 ## Example kubeconfig workflow with the kube-proxy service cluster access
 
  - Set cluster configuration
 
-```
+```bash
 kubectl config set-cluster kubernetes-the-hard-way \
   --certificate-authority=/var/lib/kubernetes/pki/ca.crt \
   --server=https://${LOADBALANCER}:6443 \
@@ -240,7 +229,7 @@ kubectl config set-cluster kubernetes-the-hard-way \
 ```
  - Output in kubeconfig file
 
-```
+```yaml
 apiVersion: v1
 clusters:
 - cluster:
@@ -253,9 +242,10 @@ kind: Config
 preferences: {}
 users: null
 ```
+
  - Set user credentials
 
-```
+```bash
 kubectl config set-credentials system:kube-proxy \
   --client-certificate=/var/lib/kubernetes/pki/kube-proxy.crt \
   --client-key=/var/lib/kubernetes/pki/kube-proxy.key \
@@ -264,7 +254,7 @@ kubectl config set-credentials system:kube-proxy \
 
  - Output in kubeconfig file
 
-```
+```yaml
 apiVersion: v1
 clusters:
 - cluster:
@@ -284,7 +274,7 @@ users:
 
  - Set context information
 
-```
+```bash
 kubectl config set-context default \
   --cluster=kubernetes-the-hard-way \
   --user=system:kube-proxy \
@@ -293,7 +283,7 @@ kubectl config set-context default \
 
  - Output in kubeconfig file
 
-```
+```yaml
 apiVersion: v1
 clusters:
 - cluster:
@@ -317,14 +307,13 @@ users:
 
  - Use context crated previously by setting it as current context.
 
-```
+```bash
 kubectl config use-context default --kubeconfig=kube-proxy.kubeconfig
 ```
 
  - Output in kubeconfig file
 
-
-```
+```yaml
 apiVersion: v1
 clusters:
 - cluster:
@@ -345,3 +334,7 @@ users:
     client-certificate: /var/lib/kubernetes/pki/kube-proxy.crt
     client-key: /var/lib/kubernetes/pki/kube-proxy.key
 ```
+
+
+Prev: [Certificate Authority](04-ca-certificates-cluster.md)<br>
+Next: [Generating the Data Encryption Config and Key](06-data-rest-encryption-keys.md)

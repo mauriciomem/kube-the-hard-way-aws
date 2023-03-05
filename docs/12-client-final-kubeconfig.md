@@ -8,9 +8,9 @@ In this lab you will generate a kubeconfig file for the `kubectl` command line u
 
 Each kubeconfig requires a Kubernetes API Server to connect to. To support high availability the IP address assigned to the external load balancer fronting the Kubernetes API Servers will be used.
 
-[//]: # (host:master-1)
+[//]: # (host:k8s-master-1)
 
-On `master-1`
+On `k8s-master-1`
 
 Get the kube-api server load-balancer IP.
 
@@ -75,5 +75,5 @@ worker-1   NotReady    <none>   118s   v1.24.3
 worker-2   NotReady    <none>   118s   v1.24.3
 ```
 
-Prev: [TLS Bootstrapping Kubernetes Workers](11-tls-bootstrapping-kubernetes-workers.md)</br>
-Next: [Deploy Pod Networking](13-configure-pod-networking.md)
+Prev: [TLS Bootstrapping Kubernetes Workers](11-tls-bootstrapping.md)</br>
+Next: [Deploy Pod Networking](13-pod-networking.md)

@@ -26,7 +26,18 @@ variable "ssm_tunnel_instance_client" {
   description = "SSM user data configuration client"
 }
 
+variable "ssm_tunnel_instance_server_kubeadm" {
+  type        = string
+  description = "SSM user data configuration kubernetes cluster prepared for kubeadm bootstrapping"
+}
+
 variable "ssh_public_key" {
   type        = string
   description = "Admin SSH public key"
+}
+
+variable "kubeadm_on" {
+  type        = bool
+  default     = false
+  description = "Enable kubeadm mode"
 }

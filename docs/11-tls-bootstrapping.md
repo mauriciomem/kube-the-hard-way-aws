@@ -3,7 +3,7 @@
 In the previous step we configured a worker node by
 - Creating a set of key pairs for the worker node by ourself
 - Getting them signed by the CA by ourself
-- Creating a kube-config file using this certificate by ourself
+- Creating a *kubeconfig* file using this certificate by ourself
 - Everytime the certificate expires we must follow the same process of updating the certificate by ourself
 
 This is not a practical approach when you have 1000s of nodes in the cluster, and nodes dynamically being added and removed from the cluster.  With TLS boostrapping:
@@ -14,7 +14,7 @@ This is not a practical approach when you have 1000s of nodes in the cluster, an
 - The Nodes can retrieve the signed certificate from the Kubernetes CA
 - The Nodes can generate a kube-config file using this certificate by themselves
 - The Nodes can start and join the cluster by themselves
-- The Nodes can request new certificates via a CSR, but the CSR must be manually approved by a cluster administrator
+- The Nodes can request new certificates via a CSR, but the CSR must be manually approved by a cluster administrator.
 
 In Kubernetes 1.11 a patch was merged to require administrator or Controller approval of node serving CSRs for security reasons.
 
@@ -43,9 +43,9 @@ So let's get started!
 
 # Step 1 Create the Boostrap Token to be used by Nodes(Kubelets) to invoke Certificate API
 
-[//]: # (host:master-1)
+[//]: # (host:k8s-master-1)
 
-Run the following steps on `master-1`
+Run the following steps on `k8s-master-1`
 
 For the workers(kubelet) to access the Certificates API, they need to authenticate to the kubernetes api-server first. For this we create a [Bootstrap Token](https://kubernetes.io/docs/reference/access-authn-authz/bootstrap-tokens/) to be used by the kubelet
 
@@ -444,9 +444,9 @@ At `worker-2` node, run the following, selecting option 5
 
 ## Step 11 Approve Server CSR
 
-Now, go back to `master-1` and approve the pending kubelet-serving certificate
+Now, go back to `k8s-master-1` and approve the pending kubelet-serving certificate
 
-[//]: # (host:master-1)
+[//]: # (host:k8s-master-1)
 [//]: # (comment:Please now manually approve the certificate before proceeding)
 
 ```bash
@@ -488,5 +488,5 @@ worker-1   NotReady    <none>   93s   v1.24.3
 worker-2   NotReady    <none>   93s   v1.24.3
 ```
 
-Prev: [Bootstrapping the Kubernetes Worker Nodes](10-bootstrapping-kubernetes-workers.md)</br>
-Next: [Configuring Kubectl](12-configuring-kubectl.md)
+Prev: [Bootstrapping the Kubernetes Worker Nodes](10-worker-nodes-setup.md)</br>
+Next: [Configuring Kubectl](12-client-final-kubeconfig.md)
