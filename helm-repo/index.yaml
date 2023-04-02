@@ -1,0 +1,54 @@
+apiVersion: v1
+entries:
+  jenkins:
+  - apiVersion: v1
+    appVersion: lts
+    created: "2023-03-27T00:18:55.229412+02:00"
+    deprecated: true
+    description: DEPRECATED - Open source continuous integration server. It supports
+      multiple SCM tools including CVS, Subversion and Git. It can execute Apache
+      Ant and Apache Maven-based projects as well as arbitrary scripts.
+    digest: 47c5bbdb779b3296e8e180c1f44fddf3c4f4084a01de4c1a458117a54f20f5a4
+    home: https://jenkins.io/
+    icon: https://wiki.jenkins-ci.org/download/attachments/2916393/logo.png
+    name: jenkins
+    sources:
+    - https://github.com/jenkinsci/jenkins
+    - https://github.com/jenkinsci/docker-jnlp-slave
+    - https://github.com/maorfr/kube-tasks
+    - https://github.com/jenkinsci/configuration-as-code-plugin
+    urls:
+    - jenkins-2.5.4.tgz
+    version: 2.5.4
+  spark:
+  - apiVersion: v1
+    appVersion: 1.5.1
+    created: "2023-03-27T00:18:55.23011+02:00"
+    deprecated: true
+    description: DEPRECATED - Fast and general-purpose cluster computing system.
+    digest: e0b4862812f85dcf7b92d71ed90e9f894f1aef35bb76f384fe322ba736cd10fc
+    home: http://spark.apache.org
+    icon: http://spark.apache.org/images/spark-logo-trademark.png
+    name: spark
+    sources:
+    - https://github.com/kubernetes/kubernetes/tree/master/examples/spark
+    - https://github.com/apache/spark
+    urls:
+    - spark-1.0.5.tgz
+    version: 1.0.5
+  velero:
+  - apiVersion: v1
+    appVersion: 1.2.0
+    created: "2023-03-27T00:18:55.230739+02:00"
+    deprecated: true
+    description: A Helm chart for velero
+    digest: 34d7ccac1cfb5ed02b11bf9fbc1e86077ccab090cc35093bdc3d456ab02109c4
+    home: https://github.com/vmware-tanzu/velero
+    icon: https://cdn-images-1.medium.com/max/1600/1*-9mb3AKnKdcL_QD3CMnthQ.png
+    name: velero
+    sources:
+    - https://github.com/vmware-tanzu/velero
+    urls:
+    - velero-2.7.4.tgz
+    version: 2.7.4
+generated: "2023-03-27T00:18:55.227154+02:00"
