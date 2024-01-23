@@ -22,6 +22,8 @@ Common options:
 
 - `--upload-certs`: to distribute the certificates accross all control plane node without manual distribution. Let kubeadm manage the certifcate creation and distribution processes.
 
+- `--apiserver-cert-extra-sans`: extra Subject Alternative Name for the API endpoint server certificate. Could come handy if access to the cluster should be done via the public DNS hostname of the public facing instance.
+
 2. **kubeadm init without automatic certificate distribution**
 
 ```
