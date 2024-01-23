@@ -1,5 +1,11 @@
+
+data "external" "my_local_ip" {
+  program = ["bash", "-c", "curl -s 'https://api.ipify.org?format=json'"]
+}
+
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.19.0"
 
   name = "ec2-k8s-vpc"
   cidr = "10.0.0.0/16"
@@ -18,5 +24,21 @@ module "vpc" {
 
   tags = {
     type = "network"
+  }
+}
+
+resource "aws_default_security_group" "default" {
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    description = "API server access from my ip"
+    protocol    = "tcp"
+    from_port   = 6443
+    to_port     = 6443
+    cidr_blocks = ["${data.external.my_local_ip.result.ip}/32"]
+  }
+
+  tags = {
+    Name = "api_endpoint_local_access"
   }
 }
