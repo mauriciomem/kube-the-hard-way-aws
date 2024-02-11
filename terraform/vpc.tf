@@ -27,18 +27,11 @@ module "vpc" {
   }
 }
 
-resource "aws_default_security_group" "default" {
-  vpc_id = module.vpc.vpc_id
-
-  ingress {
-    description = "API server access from my ip"
-    protocol    = "tcp"
-    from_port   = 6443
-    to_port     = 6443
-    cidr_blocks = ["${data.external.my_local_ip.result.ip}/32"]
-  }
-
-  tags = {
-    Name = "api_endpoint_local_access"
-  }
+resource "aws_security_group_rule" "public_access_from_my_ip" {
+  type              = "ingress"
+  from_port         = 6443
+  to_port           = 6443
+  protocol          = "tcp"
+  cidr_blocks       = ["${data.external.my_local_ip.result.ip}/32"]
+  security_group_id = module.vpc.default_security_group_id
 }

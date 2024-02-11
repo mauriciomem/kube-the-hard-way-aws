@@ -30,6 +30,13 @@ Common options:
 sudo kubeadm init --control-plane-endpoint=k8s-ha-lb --pod-network-cidr 10.244.0.0/16 --apiserver-advertise-address=10.0.1.10
 ```
 
+  Example kubeadm init with an extra API endpoint hostname
+
+```
+sudo kubeadm init --control-plane-endpoint=k8s-ha-lb --pod-network-cidr 10.244.0.0/16 --apiserver-advertise-address=10.0.1.10 --apiserver-cert-extra-sans ec2-instance-1234.amazonaws.com
+```
+
+
 3. **Join node to the cluster with a master role. Remember to save the one time tokens generated in the previous step.**
 
 ```
