@@ -12,7 +12,7 @@ unzip awscliv2.zip
 if [ "${ip}" == "$(ip addr show | grep -o ${ip})" ] ; then hostnamectl set-hostname ${host}; fi
 %{ endfor ~}
 
-# Update /etc/hosts about other hosts
+# Update /etc/hosts info about other hosts
 cat >> /etc/hosts <<EOF
 %{ for host, ip in zipmap(cluster_hosts, cluster_ips) ~}
 ${ip}     ${host}

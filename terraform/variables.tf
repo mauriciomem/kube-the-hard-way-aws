@@ -6,12 +6,6 @@ variable "aws_region" {
 variable "tags" {
   type = object({
     application_name = string
-    owner            = string
-    environment      = string
-    prefix           = string
-    costCenter       = string
-    tagVersion       = number
-    project          = string
   })
   description = "Object defining tagging strategy to use through the entire codebase. You must set this on a per environment level."
 }

@@ -6,21 +6,55 @@ General requisites
 
  - An AWS account available to deploy AWS resources.
  - An SSH key pair.
- - An SSH configuration to be able to login through SSM session manager.
  - awscli installed.
  - A small budget to deploy 6 EC2 instances with a NAT Gateway. 
+ - (OPTIONAL) An SSH configuration to be able to login through SSM session manager.
 
 ## Terraform
 
 The `terraform` folder includes all required resources to provision all the underlying infrastructure. To deploy all the AWS resources, you should:
+1. Copy the file `terraform.default.tfvars` to `terraform.tfvars` and update the variable values as needed.
+2. Ensure all prerequisites are met, then preview the resources to be deployed by running: `terraform plan`.
+3. Deploy the infrastructure by running: `terraform apply`.
+4. After deployment, the output from `terraform apply` will list the node names and their corresponding instance IDs for both the Kubernetes cluster and the client instance.
+5. To connect to an instance, use: `aws ssm start-session --target [instance id]`
 
-1. Copy the file `variables.default.tfvars` to `variables.tfvars` and set the variable values accordingly.
-2. Review if everything is in place and check the resources to be deployed with: `terraform plan --var-file variables.tfvars`.
-3. Apply changes to deploy the infra with: `terraform apply --var-file variables.tfvars`
+## Lab Defaults
 
-## SSH configuration
+ - Three subnets
+ - One NAT gateway
+ - 10.0.0.0/16 CIDR
 
-This lab leverages SSM session manager to access the EC2 instances, replacing the deployment of a bastion  in a public subnet. This setup is managed by terraform. Nevertheless, from the client side, you should add to the ssh configuration file the following references,
+### EC2 Instances Network
+
+The network deployed in AWS consists in:
+
+ - Three private subnets.
+ - Three public subnets.
+ - An only NAT Gateway.
+ - An Internet Gateway.
+
+All instances except the load balancer will be placed in private subnets. The load balancer will have attached a public IP.
+
+It is *recommended* that you leave the pod and service networks with the following defaults. If you change them then you will also need to edit one or both of the CoreDNS and Weave networking manifests to accommodate your change.
+
+### Pod Network
+
+The network used to assign IP addresses to pods is `10.244.0.0/16`.
+
+To change this, open all the `.md` files in the [docs](../docs/) directory in your favourite IDE and do a global replace on `POD_CIDR=10.244.0.0/16` with the new CDIR range.  This should not overlap any of the other network settings.
+
+### Service Network
+
+The network used to assign IP addresses to Cluster IP services is `10.96.0.0/16`.
+
+To change this, open all the `.md` files in the [docs](../docs/) directory in your favourite IDE and do a global replace on `SERVICE_CIDR=10.96.0.0/16` with the new CDIR range.  This should not overlap any of the other network settings.
+
+Additionally edit line 164 of [coredns.yaml](../deployments/coredns.yaml) to set the new DNS service address (should still end with `.10`)
+
+## (OPTONAL) SSH configuration
+
+This lab leverages SSM session manager to access the EC2 instances, replacing the deployment of a bastion in a public subnet. This setup is managed by terraform. Nevertheless, from the client side, you should add to the ssh configuration file the following references,
 
 ```bash
 # K8S client over Session Manager
@@ -68,39 +102,6 @@ aws ssm start-session --target $HOST \
   --profile ${AWS_PROFILE} \
   --region ${AWS_REGION}
 ```
-
-## Lab Defaults
-
- - Three subnets
- - One NAT gateway
- - 10.0.0.0/16 CIDR
-
-### EC2 Instances Network
-
-The network deployed in AWS consists in:
-
- - Three private subnets.
- - Three public subnets.
- - An only NAT Gateway.
- - An Internet Gateway.
-
-All instances except the load balancer will be placed in private subnets. The load balancer will have attached a public IP.
-
-It is *recommended* that you leave the pod and service networks with the following defaults. If you change them then you will also need to edit one or both of the CoreDNS and Weave networking manifests to accommodate your change.
-
-### Pod Network
-
-The network used to assign IP addresses to pods is `10.244.0.0/16`.
-
-To change this, open all the `.md` files in the [docs](../docs/) directory in your favourite IDE and do a global replace on `POD_CIDR=10.244.0.0/16` with the new CDIR range.  This should not overlap any of the other network settings.
-
-### Service Network
-
-The network used to assign IP addresses to Cluster IP services is `10.96.0.0/16`.
-
-To change this, open all the `.md` files in the [docs](../docs/) directory in your favourite IDE and do a global replace on `SERVICE_CIDR=10.96.0.0/16` with the new CDIR range.  This should not overlap any of the other network settings.
-
-Additionally edit line 164 of [coredns.yaml](../deployments/coredns.yaml) to set the new DNS service address (should still end with `.10`)
 
 ## Running Commands in Parallel with tmux
 
