@@ -83,6 +83,24 @@ mv runc.amd64 /usr/local/bin/runc
 tar -xzvf containerd-$CONTAINERD_VERSION-linux-amd64.tar.gz -C /usr/local
 tar -xzvf cni-plugins-linux-amd64-v$CNI_VERSION.tgz -C /opt/cni/bin
 
+# container registry configuration
+mkdir /etc/containers
+cat > /etc/containers/registries.conf <<EOF
+unqualified-search-registries = ["docker.io"]
+
+[[registry]]
+prefix = "docker.io"
+location = "docker.io"
+
+[[registry.mirror]]
+prefix = "docker.io"
+location = "mirror.gcr.io"
+
+[[registry.mirror]]
+prefix = "docker.io"
+location = "registry-1.docker.io"
+EOF
+
 # create crictl connection with containerd
 cat <<EOF | sudo tee /etc/crictl.yaml
 runtime-endpoint: unix:///run/containerd/containerd.sock
